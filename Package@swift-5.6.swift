@@ -19,6 +19,7 @@ let package = Package(
         .library(name: "SignPostIntegration", type: .static, targets: ["SignPostIntegration"]),
         .library(name: "OpenTracingShim-experimental", type: .static, targets: ["OpenTracingShim"]),
         .library(name: "SwiftMetricsShim", type: .static, targets: ["SwiftMetricsShim"]),
+        .library(name: "SwiftLogShim", targets: ["SwiftLogShim"]),
         .library(name: "JaegerExporter", type: .static, targets: ["JaegerExporter"]),
         .library(name: "ZipkinExporter", type: .static, targets: ["ZipkinExporter"]),
         .library(name: "StdoutExporter", type: .static, targets: ["StdoutExporter"]),
@@ -82,6 +83,12 @@ let package = Package(
                                .product(name: "CoreMetrics", package: "swift-metrics")],
                 path: "Sources/Importers/SwiftMetricsShim",
                 exclude: ["README.md"]),
+        .target(name: "SwiftLogShim",
+                dependencies: [
+                    .product(name: "Logging", package: "swift-log"),
+                    "OpenTelemetryApi"
+                ],
+                path: "Sources/Importers/SwiftLogShim"),
         .target(name: "JaegerExporter",
                 dependencies: [
                     "OpenTelemetrySdk",

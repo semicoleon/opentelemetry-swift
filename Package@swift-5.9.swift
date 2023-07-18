@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "OpenTelemetryApi", type: .static, targets: ["OpenTelemetryApi"]),
         .library(name: "OpenTelemetrySdk", type: .static, targets: ["OpenTelemetrySdk"]),
         .library(name: "SwiftMetricsShim", type: .static, targets: ["SwiftMetricsShim"]),
+        .library(name: "SwiftLogShim", targets: ["SwiftLogShim"]),
         .library(name: "StdoutExporter", type: .static, targets: ["StdoutExporter"]),
         .library(name: "PrometheusExporter", type: .static, targets: ["PrometheusExporter"]),
         .library(name: "OpenTelemetryProtocolExporter", type: .static, targets: ["OpenTelemetryProtocolExporterGrpc"]),
@@ -44,6 +45,12 @@ let package = Package(
                                .product(name: "CoreMetrics", package: "swift-metrics")],
                 path: "Sources/Importers/SwiftMetricsShim",
                 exclude: ["README.md"]),
+        .target(name: "SwiftLogShim",
+                        dependencies: [
+                            .product(name: "Logging", package: "swift-log"),
+                            "OpenTelemetryApi"
+                        ],
+                        path: "Sources/Importers/SwiftLogShim"),
         .target(name: "PrometheusExporter",
                 dependencies: ["OpenTelemetrySdk",
                                .product(name: "NIO", package: "swift-nio"),
