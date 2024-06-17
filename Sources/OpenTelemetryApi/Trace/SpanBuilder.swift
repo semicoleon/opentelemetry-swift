@@ -5,9 +5,9 @@
 
 import Foundation
 
-/// A base protocol for `SpanBuilder` which encapsulates all of the functionality that is correct in both imperative and structured API modes. Functionality which is only guarenteed to work in the imperative mode exists on `SpanBuilder`.
+/// A base protocol for `SpanBuilder` which encapsulates all of the functionality that is correct in both imperative and structured APIs. Functionality which is only guarenteed to work in the imperative APIs exists on `SpanBuilder`.
 ///
-/// Note that it is never correct to only implement `SpanBuilderBase`, `SpanBuilder` should always be implemented for any span builder type as well.
+/// - Warning: It is never correct to only implement `SpanBuilderBase`, `SpanBuilder` should always be implemented for any span builder type as well.
 public protocol SpanBuilderBase: AnyObject {
     /// Sets the parent Span to use. If not set, the value of OpenTelemetryContext.activeSpan
     /// at startSpan() time will be used as parent.
@@ -105,19 +105,13 @@ public protocol SpanBuilderBase: AnyObject {
     /// - Parameter startTimestamp: the explicit start timestamp of the newly created Span in nanos since epoch.
     @discardableResult func setStartTime(time: Date) -> Self
 
-    /// Starts a new Span for the duration of the passed closure
+    /// Starts a new Span and makes it active for the duration of the passed closure. The span will be ended before this method returns.
     func withActiveSpan<T>(_ operation: (any SpanBase) throws -> T) rethrows -> T
 
 #if canImport(_Concurrency)
-    /// Starts a new Span for the duration of the passed closure
+    /// Starts a new Span and makes it active for the duration of the passed closure. The span will be ended before this method returns.
     func withActiveSpan<T>(_ operation: (any SpanBase) async throws -> T) async rethrows -> T
 #endif
-}
-
-public protocol SpanBuilder: SpanBuilderBase {
-    /// Sets the Span as the active Span in the current context when started.
-    /// - Parameter active: If the span will be set as the activeSpan
-    @discardableResult func setActive(_ active: Bool) -> Self
 
     /// Starts a new Span.
     ///
@@ -125,23 +119,39 @@ public protocol SpanBuilder: SpanBuilderBase {
     ///
     /// Does not install the newly created Span to the current Context.
     func startSpan() -> Span
+
+    /// Starts a new Span. The span will be ended before this method returns.
+    func withStartedSpan<T>(_ operation: (any SpanBase) throws -> T) rethrows -> T
+
+#if canImport(_Concurrency)
+    /// Starts a new Span. The span will be ended before this method returns.
+    func withStartedSpan<T>(_ operation: (any SpanBase) async throws -> T) async rethrows -> T
+#endif
 }
 
-public extension SpanBuilder {
-    func withActiveSpan<T>(_ operation: (any SpanBase) throws -> T) rethrows -> T {
+public protocol SpanBuilder: SpanBuilderBase {
+    /// Sets the Span as the active Span in the current context when started.
+    /// - Parameter active: If the span will be set as the activeSpan
+    @discardableResult func setActive(_ active: Bool) -> Self
+}
+
+public extension SpanBuilderBase {
+    func withStartedSpan<T>(_ operation: (any SpanBase) throws -> T) rethrows -> T {
         let span = self.startSpan()
         defer {
             span.end()
         }
+
         return try operation(span)
     }
 
 #if canImport(_Concurrency)
-    func withActiveSpan<T>(_ operation: (any SpanBase) async throws -> T) async rethrows -> T {
+    func withStartedSpan<T>(_ operation: (any SpanBase) async throws -> T) async rethrows -> T {
         let span = self.startSpan()
         defer {
             span.end()
         }
+
         return try await operation(span)
     }
 #endif

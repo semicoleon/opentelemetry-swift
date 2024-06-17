@@ -106,14 +106,14 @@ private class BatchWorker: Thread {
           if spanList.count < maxExportBatchSize {
             repeat {
               cond.wait(until: Date().addingTimeInterval(scheduleDelay))
-            } while spanList.isEmpty
+            } while spanList.isEmpty && !self.isCancelled
           }
           spansCopy = spanList
           spanList.removeAll()
           cond.unlock()
           self.exportBatch(spanList: spansCopy, explicitTimeout: self.exportTimeout)
       }
-    } while true
+    } while !self.isCancelled
   }
   
   func shutdown() {
