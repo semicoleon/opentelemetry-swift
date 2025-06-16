@@ -55,7 +55,7 @@ public struct TracerProviderWrapper {
 public struct OpenTelemetry {
   public static var version: String { _OpenTelemetry.version }
 
-  public static var instance = OpenTelemetry()
+  public static let instance = OpenTelemetry()
 
   /// Registered tracerProvider or default via DefaultTracerProvider.instance.
   public var tracerProvider: TracerProviderWrapper {
@@ -82,7 +82,9 @@ public struct OpenTelemetry {
   }
 
   /// registered manager or default via  DefaultBaggageManager.instance.
-  public var propagators: ContextPropagators = DefaultContextPropagators(textPropagators: [W3CTraceContextPropagator()], baggagePropagator: W3CBaggagePropagator())
+    public var propagators: ContextPropagators {
+        _OpenTelemetry.instance.propagators
+    }
 
   /// registered manager or default via  DefaultBaggageManager.instance.
   public var contextProvider: OpenTelemetryContextProvider {
